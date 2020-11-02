@@ -1,4 +1,4 @@
-import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
+import {createAction, createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import axios from "../../axios";
 import {getCurrentBrandId} from "./selectors";
 
@@ -7,6 +7,10 @@ const name = 'brand';
 
 const URL = '/site/vendors';
 const URL_HITS = '/site/goods/brands';
+
+// Если какой-либо экшен требуется вызвать в thunk экшене, созданном при помощи createAsyncThunk, то
+// делаем это таким образом. createAction возвращает action creator с указанным типом и payload в качестве параметра
+export const setCurrentGroup = createAction(`${name}/setCurrentGroup`);
 
 // Такой способ создания thunk экшенов позволяет не описывать из раза в раз одинаковые экшены (типа
 // requestBrandStart, requestBrandFailure и т.д..), предоставляя более удобное API (см. extraReducers в brandSlice).
@@ -20,9 +24,10 @@ const URL_HITS = '/site/goods/brands';
 // - dispatchConditionRejection - boolean значение. Если true - то при отмене thunk_и будет диспатчиться reject
 export const requestBrand = createAsyncThunk(
     `${name}/requestBrand`,
-    async (brandId, {rejectWithValue}) => {
+    async (brandId, {dispatch, rejectWithValue}) => {
         try {
             const res = await axios.get(`${URL}/${brandId}`)
+            dispatch(setCurrentGroup(brandId));
 
             return res.data;
         } catch (e) {
@@ -42,6 +47,7 @@ const initialState = {
     data: {},
     data_hits: [],
     currentGroup: null,
+    showBanner: false,
     loading: false,
     loading_hits: false,
     error: null,
@@ -64,11 +70,14 @@ const brandSlice = createSlice({
             state.loading = false;
             state.error_hits = payload;
         },
-        setCurrentGroup: (state, { payload }) => {
+        [setCurrentGroup]: (state, { payload }) => {
             state.currentGroup = payload;
         },
         resetCurrentGroup: state => {
             state.currentGroup = null;
+        },
+        toggleShowBanner: state => {
+            state.showBanner = !state.showBanner;
         }
     },
     extraReducers: {
@@ -92,8 +101,8 @@ const {
     requestHitsStart: _requestHitsStart,
     requestHitsSuccess: _requestHitsSuccess,
     requestHitsFailure: _requestHitsFailure,
-    setCurrentGroup,
-    resetCurrentGroup
+    resetCurrentGroup,
+    toggleShowBanner,
 } = brandSlice.actions;
 
 // для примера дана и обычная запись thunk экшена
@@ -114,7 +123,7 @@ export const requestBrandHits = brandName => async dispatch => {
 }
 
 // экспорт публичных экшенов
-export { setCurrentGroup, resetCurrentGroup };
+export { resetCurrentGroup, toggleShowBanner };
 
 // экспорт редьюсера
 export default brandSlice.reducer;
