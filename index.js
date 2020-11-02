@@ -70,9 +70,6 @@ const brandSlice = createSlice({
             state.loading = false;
             state.error_hits = payload;
         },
-        [setCurrentGroup]: (state, { payload }) => {
-            state.currentGroup = payload;
-        },
         resetCurrentGroup: state => {
             state.currentGroup = null;
         },
@@ -92,6 +89,9 @@ const brandSlice = createSlice({
         [requestBrand.rejected]: (state, { payload }) => {
             state.loading = false;
             state.error = payload;
+        },
+        [setCurrentGroup]: (state, { payload }) => {
+            state.currentGroup = payload;
         },
     }
 })
